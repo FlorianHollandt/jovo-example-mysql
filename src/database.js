@@ -1,5 +1,5 @@
 
-const _ = require('lodash');
+const _get = require('lodash.get');
 const mysql = require('mysql');
 
 const config = require('./config');
@@ -50,7 +50,7 @@ module.exports = {
                             return reject(error);
                         }
                         resolve(
-                            _.get(results, "[0]['COUNT (*)']") || 0
+                            _get(results, "[0]['COUNT (*)']") || 0
                         );
                         connection.end();
                     }
