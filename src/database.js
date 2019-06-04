@@ -5,15 +5,11 @@ const mysql = require('mysql');
 const config = require('./config');
 
 module.exports = {
-    createPool: function() {
-        return mysql.createPool(config.db.MySQL.connection);
-    },
 
-    writeScore: function(score, pool) {
+    writeScore: function(score) {
         return new Promise(async (resolve, reject) => {
             try {
-                const connection = await getConnection(pool);
-                // Use the connection
+                const connection = await mysql.createConnection(config.db.MySQL.connection);
                 const query = connection.query(
                     `INSERT INTO ${
                         config.custom.dbTables.scores.tableName
@@ -28,7 +24,7 @@ module.exports = {
                             return reject(error);
                         }
                         resolve(results);
-                        connection.release();
+                        connection.end();
                     }
                 );
             }
@@ -38,11 +34,10 @@ module.exports = {
         });
     },
 
-    getNumberOfBetterScores: function(score, pool) {
+    getNumberOfBetterScores: function(score) {
         return new Promise(async (resolve, reject) => {
             try {
-                const connection = await getConnection(pool);
-                // Use the connection
+                const connection = await mysql.createConnection(config.db.MySQL.connection);
                 const query = connection.query(
                     `SELECT COUNT (*) FROM ${
                         config.custom.dbTables.scores.tableName
@@ -57,7 +52,7 @@ module.exports = {
                         resolve(
                             _.get(results, "[0]['COUNT (*)']") || 0
                         );
-                        connection.release();
+                        connection.end();
                     }
                 );
             }
@@ -68,20 +63,3 @@ module.exports = {
     },
 };
 
-function getConnection(pool) {
-    return new Promise(
-        (resolve, reject) => {
-            if (!pool) {
-                throw new Error('Connection could not be established.');
-            }
-            pool.getConnection(
-                (err, connection) => {
-                    if (err) {
-                        return reject(new Error(err.message));
-                    }
-                    resolve(connection);
-                }
-            );
-        }
-    );
-}

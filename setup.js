@@ -6,11 +6,10 @@ const config = require('./src/config');
 main();
 
 async function main() {
-    const pool = mysql.createPool(config.db.MySQL.connection);
     console.time('Retrieving list of tables: ');
     let tableList;
     try {
-        tableList = await listTables(pool);
+        tableList = await listTables();
     } catch (error) {
         console.error(`Error at retrieving list of tables: ${JSON.stringify(error, null, 4)}`);
     }
@@ -20,7 +19,7 @@ async function main() {
     if (tableList.indexOf(config.custom.dbTables.scores.tableName) < 0) {
         console.time('Setting up score table: ');
         try {
-            const tableSetupResult = await createScoreTable(pool);
+            const tableSetupResult = await createScoreTable();
             console.log(`Table setup result: ${JSON.stringify(tableSetupResult, null, 4)}`);
         } catch (error) {
             console.error(`Error at setting up score table: ${JSON.stringify(error, null, 4)}`);
@@ -32,14 +31,13 @@ async function main() {
         }) already set up. :)`);
     }
 
-    pool.end();
     return;
 }
 
-function listTables(pool) {
+function listTables() {
     return new Promise(async (resolve, reject) => {
         try {
-            const connection = await getConnection(pool);
+            const connection = await mysql.createConnection();
             const query = connection.query(
                 `SHOW TABLES;`,
                 [],
@@ -54,7 +52,7 @@ function listTables(pool) {
                             }
                         )
                     );
-                    connection.release();
+                    connection.end();
                 }
             );
         } catch (e) {
@@ -63,10 +61,10 @@ function listTables(pool) {
     });
 }
 
-function createScoreTable(pool) {
+function createScoreTable() {
     return new Promise(async (resolve, reject) => {
         try {
-            const connection = await getConnection(pool);
+            const connection = await mysql.createConnection();
             const query = connection.query(
                 `CREATE TABLE ${
                     config.custom.dbTables.scores.tableName
@@ -83,29 +81,11 @@ function createScoreTable(pool) {
                         return reject(error);
                     }
                     resolve(results);
-                    connection.release();
+                    connection.end();
                 }
             );
         } catch (e) {
             reject(e);
         }
     });
-}
-
-function getConnection(pool) {
-    return new Promise(
-        (resolve, reject) => {
-            if (!pool) {
-                throw new Error('Connection could not be established.');
-            }
-            pool.getConnection(
-                (err, connection) => {
-                    if (err) {
-                        return reject(new Error(err.message));
-                    }
-                    resolve(connection);
-                }
-            );
-        }
-    );
 }

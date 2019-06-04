@@ -69,11 +69,10 @@ app.setHandler({
 
         const sumOfDice = this.$data.sumOfDice;
 
-        const pool = database.createPool();
         console.time('Retrieving number of better scores: ');
         let numberOfBetterScores = 0;
         try {
-            numberOfBetterScores = await database.getNumberOfBetterScores(sumOfDice, pool);
+            numberOfBetterScores = await database.getNumberOfBetterScores(sumOfDice);
         } catch (error) {
             console.error(`Error at retrieving scores from database: ${JSON.stringify(error, null, 4)}`);
         }
@@ -81,14 +80,12 @@ app.setHandler({
         console.log(`Number of better scores: ${numberOfBetterScores}`);
 
         console.time('Inserting current score: ');
-        await database.writeScore(sumOfDice, pool);
         try {
-            await database.writeScore(sumOfDice, pool);
+            await database.writeScore(sumOfDice);
         } catch (error) {
             console.error(`Error at writing score to database: ${JSON.stringify(error, null, 4)}`);
         }
         console.timeEnd('Inserting current score: ');
-        pool.end();
 
         this.$speech.addText(`Your score is `);
 
