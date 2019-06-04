@@ -14,16 +14,7 @@ module.exports = {
     },
     db: {
         MySQL: {
-            users: {
-                tableName: 'users',
-                primaryKeyColumn: 'userId',
-                dataColumnName: 'userData',
-            },
-            scores: {
-                tableName: 'scores',
-                primaryKeyColumn: 'id',
-                scoreColumnName: 'score',
-            },
+            tableName: 'users',
             connection: {
                 connectionLimit : 5,
                 debug: false,
@@ -34,6 +25,15 @@ module.exports = {
                 database: process.env.MYSQL_DATABASE || 'jovoapp',
             },
         },
+    },
+    custom: {
+        dbTables: {
+            scores: {
+                tableName: 'scores',
+                primaryKeyColumn: 'id',
+                scoreColumnName: 'score',
+            },
+        }
     },
  };
  

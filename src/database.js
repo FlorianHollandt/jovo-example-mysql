@@ -1,36 +1,34 @@
 
+const _ = require('lodash');
 const mysql = require('mysql');
 
 const config = require('./config');
 
 module.exports = {
-    writeScore: async function(score) {
+    createPool: function() {
+        return mysql.createPool(config.db.MySQL.connection);
+    },
+
+    writeScore: function(score, pool) {
         return new Promise(async (resolve, reject) => {
             try {
-                const pool = mysql.createPool(config.db.MySQL.connection);
                 const connection = await getConnection(pool);
                 // Use the connection
                 const query = connection.query(
                     `INSERT INTO ${
-                        config.db.MySQL.scores.tableName
+                        config.custom.dbTables.scores.tableName
                     } SET ?`,
                     [
                         {
-                            [config.db.MySQL.scores.scoreColumnName]: score,
+                            [config.custom.dbTables.scores.scoreColumnName]: score,
                         },
                     ],
                     (error, results) => {
                         if (error) {
                             return reject(error);
                         }
-                        try {
-                            resolve(results);
-                        }
-                        catch (e) {
-                            reject(e);
-                        }
+                        resolve(results);
                         connection.release();
-                        pool.end()
                     }
                 );
             }
@@ -40,31 +38,26 @@ module.exports = {
         });
     },
 
-    getNumberOfBetterScores: async function(score) {
+    getNumberOfBetterScores: function(score, pool) {
         return new Promise(async (resolve, reject) => {
             try {
-                const pool = mysql.createPool(config.db.MySQL.connection);
                 const connection = await getConnection(pool);
                 // Use the connection
                 const query = connection.query(
                     `SELECT COUNT (*) FROM ${
-                        config.db.MySQL.scores.tableName
+                        config.custom.dbTables.scores.tableName
                     } WHERE ${
-                        config.db.MySQL.scores.scoreColumnName
+                        config.custom.dbTables.scores.scoreColumnName
                     } >= ?`,
                     [score],
                     (error, results) => {
                         if (error) {
                             return reject(error);
                         }
-                        try {
-                            resolve(results[0]['COUNT (*)']);
-                        }
-                        catch (e) {
-                            reject(e);
-                        }
+                        resolve(
+                            _.get(results, "[0]['COUNT (*)']") || 0
+                        );
                         connection.release();
-                        pool.end()
                     }
                 );
             }

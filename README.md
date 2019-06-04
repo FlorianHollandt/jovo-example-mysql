@@ -37,17 +37,12 @@ MYSQL_DATABASE='jovoapp' <-- The DB name from step 5
 
 ## Setting up the highscore table
 
-Unlike the user database, the voice app will not automatically create a table for the highscores, so you have to set it up yourself. Here's how you can do it on the MySQL ommand-Line Client (please replace the `<VARIABLE>` fields with the equivalent value from the previous point): 
+Unlike the user database, the voice app will not automatically create a table for the highscores, so you have to set it up yourself. I have prepared a little setup script (`setup.js`) that will use the project's credentials to set up this table initially.
+
+To execute it, navigate into the project's root folder and run the following on your command line:
 
 ```
-mysql -h <MYSQL_ADDR> -P <MYSQL_PORT> -u <MYSQL_USER> -p <MYSQL_DATABASE>
-[Enter your password at that point]
-
-CREATE TABLE scores (
-    id INT(11) NOT NULL AUTO_INCREMENT,
-    score INT,
-    PRIMARY KEY (id)
-);
+node setup.js
 ```
 
 # What the voice app does

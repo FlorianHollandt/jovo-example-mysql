@@ -1,6 +1,5 @@
 'use strict';
 
-const config = require('./config');
 const database = require('./database');
 
 // ------------------------------------------------------------------
@@ -19,7 +18,7 @@ app.use(
     new Alexa(),
     new GoogleAssistant(),
     new JovoDebugger(),
-    new MySQL(config.db.MySQL.users)
+    new MySQL()
 );
 
 
@@ -32,8 +31,6 @@ app.setHandler({
         this.$speech
             .addText('Welcome to dice rolling championship!')
             .addText('Let\'s see how high you can score by rolling ten dice.');
-
-        this.$user.$data.foo = 'bar';
 
         return this.toIntent('_rollDice');
     },
@@ -71,11 +68,27 @@ app.setHandler({
     async _compareResult() {
 
         const sumOfDice = this.$data.sumOfDice;
-        const numberOfBetterScores = await database.getNumberOfBetterScores(sumOfDice);
-        console.log(`Number of better scores: ${numberOfBetterScores} (${typeof numberOfBetterScores})`);
 
-        // This doesn't need to be asynchronous, let's reduce latency here :)
-        database.writeScore(sumOfDice);
+        const pool = database.createPool();
+        console.time('Retrieving number of better scores: ');
+        let numberOfBetterScores = 0;
+        try {
+            numberOfBetterScores = await database.getNumberOfBetterScores(sumOfDice, pool);
+        } catch (error) {
+            console.error(`Error at retrieving scores from database: ${JSON.stringify(error, null, 4)}`);
+        }
+        console.timeEnd('Retrieving number of better scores: ');
+        console.log(`Number of better scores: ${numberOfBetterScores}`);
+
+        console.time('Inserting current score: ');
+        await database.writeScore(sumOfDice, pool);
+        try {
+            await database.writeScore(sumOfDice, pool);
+        } catch (error) {
+            console.error(`Error at writing score to database: ${JSON.stringify(error, null, 4)}`);
+        }
+        console.timeEnd('Inserting current score: ');
+        pool.end();
 
         this.$speech.addText(`Your score is `);
 
