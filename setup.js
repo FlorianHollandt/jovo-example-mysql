@@ -37,7 +37,7 @@ async function main() {
 function listTables() {
     return new Promise(async (resolve, reject) => {
         try {
-            const connection = await mysql.createConnection();
+            const connection = await mysql.createConnection(config.db.MySQL.connection);
             const query = connection.query(
                 `SHOW TABLES;`,
                 [],
@@ -64,7 +64,7 @@ function listTables() {
 function createScoreTable() {
     return new Promise(async (resolve, reject) => {
         try {
-            const connection = await mysql.createConnection();
+            const connection = await mysql.createConnection(config.db.MySQL.connection);
             const query = connection.query(
                 `CREATE TABLE ${
                     config.custom.dbTables.scores.tableName
