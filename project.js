@@ -23,7 +23,7 @@ module.exports = {
 		 },
 		 languageModel: {
 			 'en-US': {
-				 invocation: 'dynamic entities',
+				 invocation: 'dice championship',
 			 },
 		 },
    },
